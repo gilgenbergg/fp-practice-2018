@@ -19,14 +19,31 @@ gcd x 0 = x
 gcd x y = if x>y then gcd y (x `mod` y)
                   else gcd x (y `mod` x)
 
+
+squares = map (\x -> x*x) [1..]
 -- существует ли полный целочисленный квадрат в диапазоне [from, to)?
 doesSquareBetweenExist :: Integer -> Integer -> Bool
-doesSquareBetweenExist from to = todo
+doesSquareBetweenExist from to = squareCheck [from..to-1]
+        where squareCheck elements = if length elements /=0 then 
+                                             if elem (last elements) (takeWhile(<=to-1) squares) then True
+                                                                                                 else squareCheck(init elements)
+                                                            else False
 
 -- является ли дата корректной с учётом количества дней в месяце и
 -- вискокосных годов?
 isDateCorrect :: Integer -> Integer -> Integer -> Bool
-isDateCorrect day month year = todo
+isDateCorrect day month year = checkDate day month year
+        where checkDate day month year =                
+                  if day <= 0 || month <= 0 || month >=13 || year < 0 
+                         then False
+                  else if day <= (if month `elem` [4,6,9,11] then 30
+                                   else if month == 2 then
+                                                if (year `mod` 400 == 0) || (year `mod` 100 /= 0) && (year `mod` 4 == 0) then 29
+                                                else 28
+                                        else 31) 
+                        then True
+                        else False             
+                
 
 -- возведение числа в степень, duh
 -- готовые функции и плавающую арифметику использовать нельзя
@@ -47,7 +64,7 @@ isPrime x = if x <= 1 then False
                 --1st version reminder                
                 --bodyIsPrime (checked ++ [last dividers]) (init dividers) //"slower variant with additional 
                 --"checked" list, filled up with dividers. Then null checked for result.
-						
+
 
 type Point2D = (Double, Double)
 

@@ -1,6 +1,9 @@
 module Task1_1 where
 
 import Todo(todo)
+import qualified Data.Map as Map
+
+data BinaryOperation = Plus | Minus | Multiplex deriving (Show, Eq)
 
 data Term = IntConstant{ intValue :: Int }           -- числовая константа
             | Variable{ varName :: String }          -- переменная
@@ -10,11 +13,13 @@ data Term = IntConstant{ intValue :: Int }           -- числовая кон�
 -- Для бинарных операций необходима не только реализация, но и адекватные
 -- ассоциативность и приоритет
 (|+|) :: Term -> Term -> Term
-(|+|) l r = todo
-(|-|) :: Term -> Term -> Term
-(|-|) l r = todo
+(|+|) l r = BinaryTerm l r Plus
+infixl 6 |+| Term -> Term
+(|-|) l r = BinaryTerm l r Minus
+infixl 6 |-| Term -> Term
 (|*|) :: Term -> Term -> Term
-(|*|) l r = todo
+(|*|) l r BinaryTerm l r Multiplex
+infixl 7 |*| Term -> Term
 
 -- Заменить переменную `varName` на `replacement`
 -- во всём выражении `expression`
