@@ -32,14 +32,15 @@ replaceVar :: String -> Term -> Term -> Term
 replaceVar varName replacement expression = 
 		case expression of 
 			(Variable var) -> if var == varName then replacement else expression
-			(BinaryTerm lhv rhv binop) -> BinaryTerm (replaceVar varName replacement lhv) (replaceVar varName replacement rhv) binop 
+			(BinaryTerm lhv rhv binop) -> 
+				BinaryTerm (replaceVar varName replacement lhv) (replaceVar varName replacement rhv) binop 
 			_ -> expression
 
 -- Посчитать значение выражения `Term`
 -- если оно состоит только из констант
 evaluate :: Term -> Term
 evaluate expression = case expression of
-	BinaryTerm lhv rhv binop -> eval lhv rhv binop where
+	bt@(BinaryTerm lhv rhv binop) -> eval lhv rhv binop where
 		eval lhv rhv binop = case (lhv, rhv) of 
 			(IntConstant lhv, IntConstant rhv) -> case binop of
 				Plus -> IntConstant (lhv + rhv)
@@ -52,13 +53,13 @@ evaluate expression = case expression of
 			(IntConstant 0, rhv) -> case binop of 
 				Plus -> rhv
 				Multiplex -> IntConstant 0
-				_ -> BinaryTerm lhv rhv binop
+				_ -> bt
 			(IntConstant 1, rhv) -> case binop of 
 				Multiplex -> rhv
-				_ -> BinaryTerm lhv rhv binop
+				_ -> bt
 			(lhv, IntConstant 1) -> case binop of
 				Multiplex -> lhv
-				_ -> BinaryTerm lhv rhv binop
-			_ -> BinaryTerm lhv rhv binop
+				_ -> bt
+			_ -> bt
 	_ -> expression	
 
