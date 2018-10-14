@@ -6,13 +6,17 @@ import Prelude hiding (foldl, foldr, unfoldr, map, concatMap,
     filter, maxBy, minBy, reverse, sum, product, elem)
 
 foldl :: (b -> a -> b) -> b -> [a] -> b
-foldl = todo
+foldl f acc [] = acc
+foldl f acc (h:t) = foldl f (f acc h) t
 
 foldr :: (a -> b -> b) -> b -> [a] -> b
-foldr = todo
+foldr f acc [] = acc 
+foldr f acc (h:t) = f h (foldr f acc t)
 
 unfoldr :: (b -> Maybe (a, b)) -> b -> [a]
-unfoldr = todo
+unfoldr f b = case f b of
+    Nothing -> []
+    Just (a, b') -> a: unfoldr f b'
 
 -- Сумма всех элементов списка (пример)
 sum :: [Integer] -> Integer
@@ -24,15 +28,18 @@ reverse lst = foldl f [] lst where f t h = h:t
 
 -- Отображение элементов списка
 map :: (a -> b) -> [a] -> [b]
-map = todo
+map f list= foldr (\x acc -> (f x) : acc) [] list
 
 -- Произведение всех элементов списка
 product :: [Integer] -> Integer
-product = todo
+product lst = foldr (*) 1 lst
+
 
 -- Выделение из списка Maybe всех существующих значений
 catMaybes :: [Maybe a] -> [a]
-catMaybes = todo
+catMaybes = foldr (\x acc -> case x of 
+    (Just a) -> a: acc 
+    Nothing -> acc) []
 
 -- Диагональ матрицы
 diagonal :: [[a]] -> [a]
@@ -44,15 +51,18 @@ filterNot = todo
 
 -- Поиск элемента в списке
 elem :: (Eq a) => a -> [a] -> Bool
-elem = todo
+elem e lst = foldr(\x acc -> if acc then True else x == e) False lst
 
 -- Список чисел в диапазоне [from, to) с шагом step
 rangeTo :: Integer -> Integer -> Integer -> [Integer]
-rangeTo from to step = todo
+rangeTo from to step = foldl(\ acc x -> 
+    if (x `mod` step == from `mod` step) then acc ++ [x] 
+                                   else acc
+    ) [] [from..to-1]
 
 -- Конкатенация двух списков
 append :: [a] -> [a] -> [a]
-append = todo
+append first second = foldr(\x acc -> x: acc) second first
 
 -- Разбиение списка lst на куски размером n
 -- (последний кусок может быть меньше)
