@@ -33,10 +33,10 @@ lookup e (Node k v l r)     | (e < k) = lookup k r
 -- Вставка пары (ключ, значение) в дерево
 insert :: (Integer, v) -> TreeMap v -> TreeMap v
 insert (k, v) EmptyTree = Leaf k v
-insert (k, v) (Leaf key value)   | (k == key) = error "Key is already taken, you are late :("
+insert (k, v) (Leaf key value)   | (k == key) = Leaf key v
                                  | (k < key) = Node key value (Leaf k v) EmptyTree
                                  | (k > key) = Node key value EmptyTree (Leaf k v)
-insert (k, v) (Node key value left right)  | (k == key) = error "Key is already taken, you are late :("
+insert (k, v) (Node key value left right)  | (k == key) = Node key value left right
                                            | (k < key) = Node key value (insert (k, v) left) right
                                            | (k > key) = Node key value left (insert (k,v) right)
 
@@ -58,21 +58,38 @@ remove :: Integer -> TreeMap v -> TreeMap v
 remove k EmptyTree = EmptyTree
 remove k (Leaf key value)            | (k == key) = EmptyTree
                                      | otherwise = Leaf key value
-remove k (Node key value left right) | (k == key) = treeFromList ((listFromTree right) ++ (listFromTree left))
+remove k (Node key value left right) | (k == key) = deleteHandler left right
                                      | (k < key) = Node key value (remove k left) right 
                                      | (k > key) = Node key value left (remove k right)
+ where 
+       deleteHandler EmptyTree EmptyTree = EmptyTree
+       deleteHandler EmptyTree t = t
+       deleteHandler (Leaf k v) t = Node k v EmptyTree t
+       deleteHandler (Node k v l r) t = Node k v l (deleteHandler r t)
 
 
 -- Поиск ближайшего снизу ключа относительно заданного
 nearestLE :: Integer -> TreeMap v -> (Integer, v)
 nearestLE _ EmptyTree                                  = error "Emptyness inside an empty tree :("
-nearestLE k (Leaf key value)                           = error "Very very lonely leaf :("
-nearestLE k (Node key value left right)                | (key == k) = (key, value)
-                                                       | (k < key) = checkLeft k left
+nearestLE k (Leaf key value)                           | (k < key) = (key, value)
+                                                       | (k >= key) = error "Not found"
+nearestLE k (Node key value left right)                | (k < key) = nearestLE k left
+                                                       | (k > key) = checkLeft key value k right 
+                                                       | (k == key) = tuffWay key value k left right
  where 
-   checkLeft k (Node key value left (Node i val ll rr))  | (k == i) = (i, val)
-                                                         | (k /= i) = nearestLE i (Node i val ll rr)                                                             
-                                                         | otherwise = (key, value)
+   checkLeft prevk prevl k EmptyTree = (prevk, prevl)
+   checkLeft _ _ k (Node key value left (Leaf i val))        | (k == i) = (i, val)
+                                                             | otherwise = (key, value)
+   checkLeft _ _ k (Node key value left (Node i val ll rr))  | (k == i) = (i, val)
+                                                             | (k /= i) = nearestLE i (Node i val ll rr)                                                       
+                                                             | otherwise = (key, value)
+   
+   tuffWay prevk prevv k EmptyTree EmptyTree = error "Not found"
+   tuffWay prevk prevv k EmptyTree right = checkLeft prevk prevv k right
+   tuffWay prevk prevv k left EmptyTree = nearestLE k left
+   tuffWay prevk prevv k left right | (k < prevk) = nearestLE k left
+                                    | (k > prevk) = checkLeft prevk prevv k right
+                                    | (k == prevk) = tuffWay prevk prevv k left right
 
 --Вычисление размера дерева
 size :: TreeMap v -> Integer
