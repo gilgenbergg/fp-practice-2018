@@ -20,9 +20,9 @@ listToRList (h : t) = RCons (listToRList t) h
 
 
 instance (Show a) => Show (ReverseList a) where
-    show RNil = "RNil"
-    show (RCons RNil h) = show h ++ " RNil"
-    show (RCons h t) = "(RCons " ++ show h ++ show t ++ ")"
+    show RNil = "[]"
+    show (RCons RNil h) = "["++ show h ++ " : 0]"
+    show (RCons h t) = "[" ++ show t ++ " : " ++ show h ++ "]"
 
 instance (Eq a) => Eq (ReverseList a) where
     (==) RNil RNil = True
@@ -51,8 +51,9 @@ concatR RNil rl = rl
 concatR rl RNil = rl
 concatR rl (RCons t h) = RCons (concatR rl t) h
 
-instance Semigroup (ReverseList a) where
-    (<>) rl2 rl1 = concatR rl2 rl1
+---------------------Uncomment in ghc versions after 8.0.2----------------------------------------
+--instance Semigroup (ReverseList a) where
+ --   (<>) rl2 rl1 = concatR rl2 rl1
 
 instance Monoid (ReverseList a) where
     mempty = RNil
