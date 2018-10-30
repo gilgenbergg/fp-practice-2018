@@ -78,14 +78,10 @@ instance  Num WeirdPeanoNumber where
     abs a = if (signum a < Zero) then negate a else a
     (+) Zero a = a
     (+) a Zero = a
-    (+) (Succ a) b = Succ $ a + b  
-    (+) (Pred a) b = Pred $ a + b 
-    (*) Zero a = Zero
-    (*) a Zero = Zero
-    (*) 1 a = a 
-    (*) a 1 = a
-    (*) (-1) a = negate a
-    (*) a (-1) = negate a
+    (+) (Succ a) b = Succ (a + b)  
+    (+) (Pred a) b = Pred (a + b)
+    (*) Zero _ = Zero
+    (*) _ Zero = Zero
     (*) (Succ a) b = b + (a * b)
     (*) (Pred a) b = if (signum a == signum b) then (b + (a * b))
                     else if (signum a /= signum b) && (signum a < Zero) then negate (b + ((negate a) * b))
@@ -97,12 +93,20 @@ instance  Num WeirdPeanoNumber where
 instance  Real WeirdPeanoNumber where
     toRational a = toRational (wpnToInt a)    
 
------------for quotRem implementation------------
---makeDivision :: WeirdPeanoNumber -> WeirdPeanoNumber -> 
+----------------------------for quotRem implementation---------------------------------
+getQuotient :: WeirdPeanoNumber -> WeirdPeanoNumber -> WeirdPeanoNumber
+getQuotient divident divider = if ((divident-divider) >= Zero)
+                                    then getQuotient (divident - divider) divider + 1
+                                    else Zero
 
+getRemainder :: WeirdPeanoNumber -> WeirdPeanoNumber -> WeirdPeanoNumber
+getRemainder divident divider = divident - divider * (getQuotient divident divider)
 
 instance  Integral WeirdPeanoNumber where 
     toInteger Zero = 0
     toInteger (Succ a) = (toInteger a + 1)
     toInteger (Pred a) = (toInteger a - 1)
-    --quotRem a b = makeDivision (parseWPN a) (parseWPN b)
+    quotRem a b = if (b == Zero) then error "You can`t divide by zero!"
+                    else if (signum a == signum b) then 
+                        (getQuotient a b, parseWPN (getRemainder a b))
+                                else (negate (getQuotient a b), parseWPN (getRemainder a b))

@@ -3,7 +3,6 @@ module Task3_2 where
 import Todo(todo)
 
 -- Реализуйте классы Eq, Ord, Show, Monoid, Functor
-
 data ReverseList a = RNil | RCons (ReverseList a) a
 
 {- ---head-tail thinking*---

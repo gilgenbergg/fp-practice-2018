@@ -2,55 +2,65 @@ module Task3_3 where
 -- Реализуйте классы Monoid и Functor
 -- Объясните в комментариях, почему они реализованы именно так
 
---Для использования внутри каждого отдельного моноида нужен отдельный PSet
+--всегда возвращает False
+f :: a -> Bool
+f _ = False
+
+--всегда возвращает True
+t :: a -> Bool
+t _ = True
+
 newtype PSet a = PSet{ contains :: (a -> Bool) }
-newtype PSetOR a = PSetOR{ containsPSetOR :: (a -> Bool) }
+--mappend от двух функций внутри PSet-ов-это скорее применение обеих функций к элементу, 
+--по факту вышло, что это соответствует объединению множеств (для инициализации пустое множество)
+instance Monoid (PSet a) where
+    mempty = PSet (f)
+    mappend (PSet s1) (PSet s2) = PSet (\a -> s1 a || s2 a)
+
+--можно попытаться описать аналогично другие операции над множествами,
+--для каждого instance требуется отдельный тип
 newtype PSetAND a = PSetAND{ containsPSetAND :: (a -> Bool) }
 newtype PSetAnotB a = PSetAnotB{ containsPSetAnotB :: (a -> Bool) }
 newtype PSetBnotA a = PSetBnotA{ containsPSetBnotA :: (a -> Bool) }
 newtype PSetSYMX a = PSetSYMX{ containsPSetSYMX :: (a -> Bool) }
 
-{-
-    Rак реализовать функтор с учетом отсутствия понимания по типам возвращаемого значения?
-    То есть по идее компилятору надо понимать, что возвращается Bool, но у нас внутри по факту не элементы,
-    а отображения в виде функций, как это преобразовать, я не знаю.
-    По идее fmap работает в любыми типами, но исходя из контекста накладываются ограничения, а как наложить
-    эти ограничения здесь, то есть показать, что на вход fmap поступает функция, точно возвращающая Bool, я не понимаю как.
--}
-
-f :: a -> Bool
-f _ = False
-
-t :: a -> Bool
-t _ = True
-
---Для PSet мне не ясен из задания принцип обработки, я не знаю, что с ним делать
-
---instance Monoid PSet a where
-    --mempty = 
-    --mappend = 
-
---Объединение
-instance Monoid (PSetOR a) where
-    mempty = PSetOR (f)
-    mappend (PSetOR s1) (PSetOR s2) = PSetOR (\a -> s1 a || s2 a)
-
---Пересечение
+--Пересечение (для инициализации выбрано всегда True)
 instance Monoid (PSetAND a) where
     mempty = PSetAND (t)
     mappend (PSetAND s1) (PSetAND s2) = PSetAND (\a -> s1 a && s2 a)
 
---A без B
+--A без B (для инициализации пустое множество)
 instance Monoid (PSetAnotB a) where
     mempty = PSetAnotB (f)
     mappend (PSetAnotB s1) (PSetAnotB s2) = PSetAnotB (\a -> s1 a && (not (s2 a)))
 
---B без A
+--B без A (для инициализации пустое множество)
 instance Monoid (PSetBnotA a) where
     mempty = PSetBnotA (f)
     mappend (PSetBnotA s1) (PSetBnotA s2) = PSetBnotA (\a -> (not (s1 a) && s2 a))
 
---Симметричная разность
+--Симметричная разность (для инициализации пустое множество)
 instance Monoid (PSetSYMX a) where
     mempty = PSetSYMX (f)
     mappend (PSetSYMX s1) (PSetSYMX s2) = PSetSYMX ((\a -> s1 a && (not (s2 a)) || (not (s1 a) && s2 a)))
+
+--instance Functor (PSet) where
+{-
+    f :: a -> b
+    f1 :: a -> Bool
+    f2 :: b -> Bool
+    Внутри функтора с применением fmap нужно получить b -> Bool
+    При этом f1 и f2 это наши PSet, которые посредством функций должны примениться к элементу поочередно.
+    Я не знаю, как сделать такую композицию средствами языка, известными мне на данный момент, так как
+    применнеие fmap в лоб дает что-то вроде: f (a -> Bool) -> f(b -> Bool), то есть...
+    у меня два вопроса: как одновременно преобразовав a в b где-то запомнить возвращаемое Bool значение
+    то есть применив к elem допустим f1 взять a, "отбросив" (?) возвращаемое Bool значение, но преобрзовав
+    в b и применив f2 вернуть Bool.. то есть в случае с Monoid сделать какие-то допущения
+    в логике можно вроде более не менее, так как нам по факту не важно, что там внутри,
+    здесь же нужно больше информации как-то о внутренней структуре что ли, в общем как наложить
+    ограничения на что-то внутри, что имеет по факту тип "функция"..
+
+    вообще не знаю, корректно ли как-то композировать функции типо . в рамках данного задания
+    fmap f1 (PSet f2) = PSet (f1 . f2) я не нашла, можно ли так делать и как делать это корректно
+-}
+
