@@ -29,16 +29,6 @@ instance Monoid (PSetAND a) where
     mempty = PSetAND (t)
     mappend (PSetAND s1) (PSetAND s2) = PSetAND (\a -> s1 a && s2 a)
 
---A без B (для инициализации пустое множество)
-instance Monoid (PSetAnotB a) where
-    mempty = PSetAnotB (f)
-    mappend (PSetAnotB s1) (PSetAnotB s2) = PSetAnotB (\a -> s1 a && (not (s2 a)))
-
---B без A (для инициализации пустое множество)
-instance Monoid (PSetBnotA a) where
-    mempty = PSetBnotA (f)
-    mappend (PSetBnotA s1) (PSetBnotA s2) = PSetBnotA (\a -> (not (s1 a) && s2 a))
-
 --Симметричная разность (для инициализации пустое множество)
 instance Monoid (PSetSYMX a) where
     mempty = PSetSYMX (f)
